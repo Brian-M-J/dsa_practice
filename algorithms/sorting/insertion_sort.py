@@ -1,75 +1,54 @@
-from random import randint
-from sys import argv, stderr, exit
-from copy import deepcopy
-from collections.abc import MutableSequence
+import unittest
 import logging
+from random import randint
+from copy import deepcopy
 
-def insertion_sort(array: MutableSequence, inplace=False) -> MutableSequence | None:
-    '''
-    Sorts a MutableSequence in ascending order.
-    if inplace == False, a sorted copy is returned instead of modifying the passed MutableSequence
-    '''
-    if not inplace:
-        array = deepcopy(array)
-    for i in range(1, len(array) + 1):
-        logging.debug(f'{i = }')
-        for j in range(i - 1, 0, -1):
-            logging.debug(f'{j = }')
-            if array[j] < array[j - 1]:
-                logging.debug(f'Swapping {array[j]} and {array[j - 1]}')
-                array[j], array[j - 1] = array[j - 1], array[j]
-        logging.debug(f'{array = }')
-    if not inplace:
-        return array
-    else:
-        return None
 
-def get_array_from_user() -> list[int]:
-    while True:
-        try:
-            user_input = input('Enter sequence of integers separated by spaces:\n>>> ')
-            if user_input == '':
-                return []
-            array = map(int, user_input.split())
-            return list(array)
-        except ValueError:
-            print('Inputs must be integers')
-    
-def main() -> None:
-    array_length: int
-    array: list[int]
-    while True:
-        choice = input('1 - Enter array manually\n2 - Randomly generate array\n3 - Exit\n>>> ')
-        match choice:
-            case '1':
-                array = get_array_from_user()
-                break
-            case '2':
-                array_length = randint(0, 20)
-                array = [randint(-50, 50) for _ in range(array_length)]
-                break
-            case '3':
-                exit()
-            case wrong:
-                print(f'Invalid input received: {wrong}')
-    print(f'Unsorted array: {array}')
-    while True:
-        choice = input('1 - Sort in place\n2 - Do not sort in place\n3 - Exit\n>>> ')
-        match choice:
-            case '1':
-                insertion_sort(array, inplace=True)
-                break
-            case '2':
-                array = insertion_sort(array, inplace=False)
-                break
-            case '3':
-                exit()
-            case wrong:
-                print(f'Invalid input received: {wrong}')
-    print(f'Sorted array: {array}')
-    
+def insertion_sorted(user_list):
+    user_list = deepcopy(user_list)
+    for i in range(1, len(user_list)):
+        selected_index = i
+        logging.debug(f"initial {selected_index = }")
+
+        while (
+            user_list[selected_index] < user_list[selected_index - 1]
+            and selected_index > 0
+        ):
+            logging.debug(
+                f"Swapping {user_list[selected_index]} and {user_list[selected_index - 1]}"
+            )
+            user_list[selected_index], user_list[selected_index - 1] = (
+                user_list[selected_index - 1],
+                user_list[selected_index],
+            )
+            logging.debug(
+                f"Decreasing selected_index from {selected_index} to {selected_index - 1}"
+            )
+            selected_index -= 1
+
+        logging.debug(f"{i = }, {user_list = }")
+    return user_list
+
+
+class _TestInsertionSort(unittest.TestCase):
+    def test_insertion_sort(self):
+        for i in range(51):
+            test_list = [randint(0, 50) for _ in range(i)]
+            logging.debug(f"Unsorted list: {test_list}")
+            sorted_list = insertion_sorted(test_list)
+            logging.debug(f"Sorted list: {sorted_list}")
+            self.assertEqual(
+                sorted_list,
+                list(sorted(test_list)),
+                f"\nTest faied on case {test_list}\nWith output {sorted_list}",
+            )
+
 
 if __name__ == "__main__":
     if __debug__:
-        logging.basicConfig(level=logging.DEBUG)
-    main()
+        logging.basicConfig(
+            level=logging.DEBUG,
+            style="{",
+            format="{levelname} | {funcName} | {message}",
+        )
+    unittest.main()
